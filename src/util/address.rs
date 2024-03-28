@@ -331,7 +331,7 @@ impl WitnessVersion {
     /// Determines the checksum variant. See BIP-0350 for specification.
     pub fn bech32_variant(&self) -> bech32::Variant {
         match self {
-            WitnessVersion::V0 => bech32::Variant::Bech32,
+            WitnessVersion::V0 | WitnessVersion::V8 | WitnessVersion::V9 => bech32::Variant::Bech32,
             _ => bech32::Variant::Bech32m,
         }
     }
@@ -1041,6 +1041,18 @@ mod tests {
         assert_eq!(&addr.to_string(), "M8oBVu9ojQ3AejSXcjSoTtRuyyeqj3qe1k");
         assert_eq!(addr.address_type(), Some(AddressType::P2sh));
         roundtrips(&addr);
+    }
+
+    #[test]
+    fn test_hogex_addr_encoding() {
+        // see https://github.com/rust-litecoin/rust-litecoin/issues/4
+        let tx_bytes = Vec::from_hex("020000000008014c6760f58df93356b4f23ab8be1f33b44be814bdfafb77c9758682d39d492eb50000000000ffffffff012c8a768b1c030000225820638c6c06eef97d9155e56990ad0cf3358ce00b47609f132750cbd05364db58da0000000000").unwrap();
+        let tx: crate::Transaction = crate::consensus::deserialize(&tx_bytes).unwrap();
+
+        let addr = 
+            Address::from_script(&tx.output[0].script_pubkey, Bitcoin).unwrap();
+
+        assert_eq!(addr.to_string(), "ltc1gvwxxcphwl97ez409dxg26r8nxkxwqz68vz03xf6se0g9xexmtrdqu4hale");
     }
 
     #[test]
